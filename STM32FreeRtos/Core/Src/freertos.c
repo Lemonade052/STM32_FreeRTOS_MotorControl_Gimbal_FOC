@@ -135,7 +135,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* definition and creation of ledQueue */
-  osMessageQDef(ledQueue, 8, uint16_t);
+  osMessageQDef(ledQueue, 8, uint32_t);
   ledQueueHandle = osMessageCreate(osMessageQ(ledQueue), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -219,7 +219,12 @@ void StartDefaultTask(void const * argument)
 
       // ④ 输出 + 上报
       __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, output);
-      osMessagePut(ledQueueHandle, (uint32_t)(int16_t)rpm, 0);
+      // 打包：高16位=角度×10，低16位=转速
+      { 
+      int16_t angle_x10 = (int16_t)(current_angle * 10.0f);
+      uint32_t msg = ((uint32_t)(uint16_t)angle_x10 << 16) | (uint16_t)(int16_t)rpm;
+      osMessagePut(ledQueueHandle,msg,0);
+      }
       osDelayUntil(&prevTick, SAMPLING_MS);
     }
   /* USER CODE END StartDefaultTask */
@@ -244,8 +249,10 @@ void StartLed2Task(void const * argument)
   {
     evt = osMessageGet(ledQueueHandle,osWaitForever);  // 没数据时，等信封送来
     if(evt.status == osEventMessage){  // 真收到数据才往下
-      r = (int16_t)evt.value.v;  // 信封里装的是转速（int16_t），转成有符号的
-      sprintf(buf,"R=%d\r\n",r);
+      uint32_t v = evt.value.v;
+      int16_t angle_x10 = (int16_t)(v >> 16);  //高16位角度x10 右移16位变成低十六位，此时高十六位清零。
+      r = (int16_t)(v & 0xFFFF);  // 低16位转速 被 与门 保留低十六位，此时高十六位清零。
+      sprintf(buf,"A=%d R=%d\r\n",angle_x10,r);
       HAL_UART_Transmit(&huart1,(uint8_t*)buf,strlen(buf),100);
 
     }
