@@ -18,3 +18,21 @@ FreeRTOS.md
 STM32_FreeRTOS_学习记录.md
 记录/
 *.iex
+
+# 第三方厂商分享资料（体积大、含版权，不入库）
+M创动工坊分享资料2.92/
+
+# CAD：只入库 v3 整机装配体 + 6 个零件 STEP，其余（v1、中间产物、厂商件、参考图）留本地
+GimbalCAD/design_v1/
+GimbalCAD/design_v3/*
+!GimbalCAD/design_v3/gimbal_assembly.step
+!GimbalCAD/design_v3/parts/
+!GimbalCAD/design_v3/parts/*.step
+GimbalCAD/reference/
+GimbalCAD/2804+AS5600圆总装配体.STEP
+
+# 根目录只保留 README，其余工作笔记不入库
+data.md
+焊接测试清单.md
+画板子.md
+项目全卡点复盘.md
